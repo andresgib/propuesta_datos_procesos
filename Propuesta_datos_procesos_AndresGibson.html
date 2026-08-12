@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ordená tus datos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --white:#FFFFFF;
+    --gray-light:#EFF5F4;
+    --gray-dark:#5B6866;
+    --red:#50C8B4;
+    --danger:#E8664F;
+    --warn:#E8A23C;
+    --ok:#2E9B5D;
+    --ink:#17221F;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--white);
+    color:var(--ink);
+    font-family:'Poppins', sans-serif;
+    line-height:1.55;
+    overflow:hidden;
+  }
+  h1,h2,h3{
+    font-family:'Poppins', sans-serif;
+    font-weight:800;
+    letter-spacing:-0.01em;
+    margin:0 0 .35em 0;
+  }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+  p{ color:#4a4a4a; max-width:520px; font-weight:400; }
+  a{ color:var(--red); }
+
+  /* ===== TOP NAV ===== */
+  .top-bar{
+    position:fixed; top:0; left:0; right:0; z-index:60;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 6vw; height:74px;
+    background:var(--white);
+  }
+  .brand{ font-weight:800; font-size:1.05rem; }
+  .brand span{ color:var(--red); }
+  .tabs-wrap{ display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; }
+  .tabs-wrap::-webkit-scrollbar{ display:none; }
+  .nav-tab{
+    background:none; border:none; cursor:pointer;
+    padding:9px 16px; border-radius:999px;
+    font-family:'Poppins',sans-serif; font-size:.82rem; font-weight:600;
+    color:var(--gray-dark); white-space:nowrap; transition:all .2s;
+  }
+  .nav-tab.active{ background:var(--ink); color:var(--white); }
+  @media(max-width:760px){ .top-bar{padding:0 4vw;} .nav-tab{padding:8px 12px; font-size:.75rem;} }
+  @media(max-width:600px){
+    .top-bar{ height:60px; }
+    .viewport-wrap{ top:60px; }
+    .panel{ padding:3vh 6vw 4vh; }
+    .brand{ font-size:.9rem; }
+    .nav-tab{ padding:7px 10px; font-size:.68rem; }
+  }
+
+  /* ===== SLIDER ===== */
+  .viewport-wrap{
+    position:fixed; top:74px; left:0; right:0; bottom:0;
+    overflow:hidden;
+  }
+  .track{
+    display:flex;
+    height:100%;
+    width:500%;
+    transform: translateX(0);
+    transition: transform .55s cubic-bezier(.65,0,.35,1);
+  }
+  .panel{
+    width:20%; height:100%; flex-shrink:0;
+    padding: 5vh 8vw;
+    display:flex; flex-direction:column; justify-content:flex-start;
+    position:relative;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .hero-panel{ justify-content:center; }
+  .panel:nth-child(odd){ background:var(--white); }
+  .panel:nth-child(even){ background:var(--gray-light); }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono',monospace; font-size:.72rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--red); margin-bottom:12px; font-weight:600;
+  }
+  .eyebrow::before{ content:""; width:22px; height:2px; background:var(--red); display:inline-block; }
+
+  /* nav arrows */
+  .arrow{
+    position:fixed; top:calc(50% + 37px); transform:translateY(-50%);
+    z-index:55; width:48px; height:48px; border-radius:50%;
+    background:var(--red); color:var(--white); border:none; cursor:pointer;
+    font-size:1.15rem; display:flex; align-items:center; justify-content:center;
+    transition: background .2s, opacity .2s, transform .15s;
+    box-shadow:0 4px 14px rgba(80,200,180,0.3);
+  }
+  .arrow:hover{ transform:translateY(-50%) scale(1.06); }
+  .arrow.left{ left:24px; }
+  .arrow.right{ right:24px; }
+  .arrow:disabled{ opacity:.2; cursor:default; box-shadow:none; }
+  @media(max-width:720px){ .arrow{ width:40px; height:40px; } .arrow.left{left:8px;} .arrow.right{right:8px;} }
+  @media(max-width:600px){
+    .arrow{ top:auto; bottom:14px; transform:none; width:38px; height:38px; font-size:1rem; }
+    .arrow:hover{ transform:scale(1.06); }
+  }
+
+  /* HERO */
+  .hero-panel{ display:grid; grid-template-columns:1.1fr .9fr; gap:50px; align-items:center; }
+  @media(max-width:900px){ .hero-panel{grid-template-columns:1fr; gap:24px;} }
+  .hero-panel h1{ font-size:clamp(1.7rem,6vw,3.5rem); line-height:1.15; }
+  .hero-panel h1 .accent{ color:var(--red); }
+  .stat-strip{ display:flex; gap:26px; margin-top:34px; flex-wrap:wrap; }
+  .stat{ max-width:190px; }
+  .stat .num{ font-family:'Poppins',sans-serif; font-weight:800; font-size:1.9rem; color:var(--ink); }
+  .stat .lbl{ font-size:.72rem; color:var(--gray-dark); font-weight:500; line-height:1.3; margin-top:2px; }
+  @media(max-width:600px){
+    .stat-strip{ gap:18px; margin-top:22px; }
+    .stat{ max-width:140px; }
+    .stat .num{ font-size:1.4rem; }
+    .stat .lbl{ font-size:.66rem; }
+  }
+  .hero-widget{
+    background:var(--ink); border-radius:18px; padding:22px;
+    position:relative; min-height:340px; overflow:hidden;
+  }
+  @media(max-width:900px){ .hero-widget{ min-height:260px; padding:16px; } }
+  @media(max-width:600px){
+    .hero-widget{ min-height:220px; }
+    .hero-panel p{ max-width:100%; font-size:.92rem; }
+    .btn{ margin-top:18px; padding:12px 22px; font-size:.8rem; }
+  }
+  .hero-widget .widget-label{ font-family:'JetBrains Mono',monospace; font-size:.66rem; color:#8d9c99; text-transform:uppercase; letter-spacing:.1em; margin-bottom:14px; }
+  .chaos-item{
+    position:absolute; font-family:'JetBrains Mono',monospace; font-size:.72rem;
+    background:#232f2c; border:1px solid #3a4744; padding:5px 9px; border-radius:6px;
+    color:#c3cdca; opacity:0;
+    animation: appear .6s ease forwards, settle .8s ease forwards, vanish .6s ease forwards;
+    animation-delay: var(--d), calc(var(--d) + 1s), calc(var(--d) + 1.9s);
+  }
+  @keyframes appear{ to{opacity:1;} }
+  @keyframes settle{ to{ top: var(--ty) !important; left: var(--tx) !important; transform:rotate(0deg) !important; } }
+  @keyframes vanish{ to{ opacity:0; } }
+  .grid-panel{
+    position:absolute; left:22px; right:22px; bottom:22px; top:52px;
+    display:grid; grid-template-columns:repeat(2,1fr); grid-template-rows:repeat(2,1fr);
+    gap:10px; opacity:0; animation: fadein .8s ease forwards; animation-delay:2.6s;
+  }
+  @media(max-width:900px){ .grid-panel{ top:46px; left:16px; right:16px; bottom:16px; } }
+  @keyframes fadein{ to{opacity:1;} }
+  .tile{
+    background:var(--white); border-radius:10px; padding:14px;
+    display:flex; flex-direction:column; justify-content:space-between;
+    box-shadow:0 4px 14px rgba(0,0,0,0.25);
+  }
+  .tile .tile-label{ font-size:.65rem; color:var(--gray-dark); text-transform:uppercase; letter-spacing:.06em; font-family:'JetBrains Mono',monospace; }
+  .tile .tile-value{ font-family:'Poppins',sans-serif; font-size:1.3rem; color:var(--red); font-weight:800; }
+  @media (prefers-reduced-motion: reduce){ .chaos-item, .grid-panel{ animation:none !important; opacity:1 !important; } }
+
+  /* FIRMA */
+  .signature{
+    margin-top:32px; padding-top:0; text-align:right;
+    font-family:'JetBrains Mono',monospace; font-size:.85rem;
+    color:var(--gray-dark); letter-spacing:.02em; opacity:.65;
+  }
+  .hero-panel .signature{ grid-column:1 / -1; margin-top:8px; }
+  @media(max-width:600px){
+    .signature{ font-size:.72rem; margin-top:20px; }
+  }
+
+  /* LISTS */
+  .row-list{ margin-top:22px; max-width:640px; }
+  .row{
+    display:grid; grid-template-columns:44px 1fr; gap:18px;
+    padding:18px 0; border-top:1px solid #d8d8d8;
+  }
+  @media(max-width:600px){
+    .row{ grid-template-columns:30px 1fr; gap:10px; padding:14px 0; }
+    .row h3{ font-size:.95rem; }
+    .row p{ font-size:.82rem; }
+    .card-grid{ margin-top:16px; gap:10px; }
+    .pkg-grid{ margin-top:16px; }
+    .pkg{ padding:20px; }
+  }
+  .row:last-child{ border-bottom:1px solid #d8d8d8; }
+  .row .idx{ font-family:'JetBrains Mono',monospace; color:var(--red); font-size:.85rem; font-weight:600; }
+  .row h3{ font-size:1.05rem; margin-bottom:4px; font-weight:700; }
+  .row p{ font-size:.88rem; margin:0; }
+
+  /* GRID areas */
+  .card-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-top:24px; max-width:1100px; }
+  @media(max-width:900px){ .card-grid{ grid-template-columns:repeat(3,1fr); max-width:700px; } }
+  @media(max-width:600px){ .card-grid{ grid-template-columns:repeat(2,1fr); max-width:100%; gap:10px; } }
+  .card{ background:var(--white); border-radius:14px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+  .card .card-num{ font-family:'JetBrains Mono',monospace; font-size:.7rem; color:var(--red); font-weight:600; }
+  .card h3{ font-size:.98rem; margin:6px 0; font-weight:700; }
+  .card p{ font-size:.82rem; margin:0; }
+
+  /* ===== DASHBOARD DEMO (slide Mejoras) ===== */
+  .dash-demo{
+    margin-top:28px; max-width:1000px;
+    background:var(--white); border:1px solid #e2e2e2; border-radius:18px;
+    padding:22px 22px 18px; box-shadow:0 4px 18px rgba(0,0,0,0.05);
+  }
+  .dash-demo-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
+  .dash-demo-label{
+    font-family:'JetBrains Mono',monospace; font-size:.66rem; color:var(--gray-dark);
+    text-transform:uppercase; letter-spacing:.1em; display:flex; align-items:center; gap:8px;
+  }
+  .dash-demo-label::before{ content:""; width:8px; height:8px; border-radius:50%; background:var(--red); display:inline-block; }
+  .dash-demo-tag{
+    font-family:'JetBrains Mono',monospace; font-size:.6rem; color:var(--gray-dark);
+    border:1px solid #ddd; border-radius:999px; padding:3px 10px; text-transform:uppercase; letter-spacing:.06em;
+  }
+  .dash-grid{ display:grid; grid-template-columns:1.3fr .8fr; gap:14px; }
+  @media(max-width:900px){ .dash-grid{ grid-template-columns:1fr; } }
+  .dash-body{ display:flex; gap:0; border:1px solid #e8e8e8; border-radius:14px; overflow:hidden; }
+  .dash-sidebar{
+    width:150px; flex-shrink:0; background:var(--ink); padding:16px 10px;
+    display:flex; flex-direction:column; gap:4px;
+  }
+  .dash-sidebar-item{
+    font-family:'Poppins',sans-serif; font-size:.76rem; font-weight:600; color:#b5b5b5;
+    padding:9px 12px; border-radius:8px; display:flex; align-items:center; gap:8px;
+  }
+  .dash-sidebar-item.active{ background:var(--red); color:var(--white); }
+  .dash-sidebar-item .dot{ width:6px; height:6px; border-radius:50%; background:currentColor; opacity:.7; flex-shrink:0; }
+  .dash-main{ flex:1; padding:16px; min-width:0; }
+  @media(max-width:640px){
+    .dash-body{ flex-direction:column; }
+    .dash-sidebar{ width:100%; flex-direction:row; overflow-x:auto; padding:10px; gap:6px; }
+    .dash-sidebar-item{ white-space:nowrap; padding:7px 12px; }
+  }
+  .dash-cell{ background:var(--gray-light); border-radius:14px; padding:16px; }
+  .dash-cell-title{ font-size:.72rem; font-weight:600; color:var(--gray-dark); margin-bottom:10px; text-transform:uppercase; letter-spacing:.04em; }
+  .dash-chart-row{ display:flex; align-items:flex-end; gap:8px; height:120px; margin-top:4px; }
+  .dash-bar-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end; }
+  .dash-bar{ width:100%; max-width:26px; border-radius:6px 6px 2px 2px; background:var(--ink); position:relative; }
+  .dash-bar.hl{ background:var(--red); }
+  .dash-bar-lbl{ font-family:'JetBrains Mono',monospace; font-size:.6rem; color:var(--gray-dark); }
+  .dash-kpi-row{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:10px; }
+  .dash-kpi{ background:var(--white); border-radius:10px; padding:12px 14px; }
+  .dash-kpi .k-lbl{ font-family:'JetBrains Mono',monospace; font-size:.6rem; color:var(--gray-dark); text-transform:uppercase; letter-spacing:.05em; }
+  .dash-kpi .k-val{ font-family:'Poppins',sans-serif; font-weight:800; font-size:1.15rem; margin-top:2px; }
+  .dash-kpi .k-delta{ font-family:'JetBrains Mono',monospace; font-size:.62rem; font-weight:600; margin-top:2px; }
+  .dash-kpi .k-delta.up{ color:#1a8a4a; }
+  .dash-kpi .k-delta.down{ color:var(--danger); }
+  .dash-alerts{ display:flex; flex-direction:column; gap:8px; }
+  .dash-alert{
+    display:flex; align-items:flex-start; gap:9px; background:var(--white); border-radius:10px;
+    padding:10px 12px; border-left:3px solid var(--danger);
+  }
+  .dash-alert.warn{ border-left-color:#d99a1c; }
+  .dash-alert.ok{ border-left-color:#1a8a4a; }
+  .dash-alert-dot{ width:7px; height:7px; border-radius:50%; background:var(--danger); margin-top:5px; flex-shrink:0; }
+  .dash-alert.warn .dash-alert-dot{ background:#d99a1c; }
+  .dash-alert.ok .dash-alert-dot{ background:#1a8a4a; }
+  .dash-alert-txt{ font-size:.76rem; color:var(--ink); font-weight:500; line-height:1.35; }
+  .dash-alert-txt small{ display:block; color:var(--gray-dark); font-weight:400; font-size:.66rem; margin-top:2px; }
+  .dash-line-svg{ width:100%; height:74px; margin-top:6px; }
+  @media(max-width:600px){
+    .dash-demo{ padding:16px 16px 12px; margin-top:18px; }
+    .dash-kpi-row{ grid-template-columns:1fr 1fr; }
+  }
+
+  /* PACKAGES */
+  .pkg-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:24px; max-width:1000px; }
+  @media(max-width:900px){ .pkg-grid{grid-template-columns:1fr; max-width:420px;} }
+  .pkg{
+    background:var(--ink); border:1.5px solid var(--ink); border-radius:16px; padding:26px;
+    display:flex; flex-direction:column; box-shadow:0 6px 20px rgba(23,34,31,0.25);
+    position:relative; color:var(--white);
+  }
+  .pkg .pkg-tag{ font-family:'JetBrains Mono',monospace; font-size:.65rem; color:var(--red); text-transform:uppercase; letter-spacing:.1em; font-weight:600; }
+  .pkg h3{ font-size:1.15rem; margin:8px 0 4px; font-weight:700; color:var(--white); }
+  .pkg .price{ font-family:'Poppins',sans-serif; font-weight:800; font-size:1.5rem; margin:6px 0; }
+  .pkg .price small{ font-size:.65rem; color:var(--gray-dark); font-weight:500; }
+  .pkg .price-note{ font-size:.65rem; color:#a9b5b2; font-weight:500; margin:0 0 10px; }
+  .pkg ul{ list-style:none; padding:0; margin:14px 0 0; flex:1; }
+  .pkg li{ font-size:.8rem; padding:6px 0; border-top:1px solid rgba(255,255,255,0.14); color:#dbe4e2; }
+  .pkg li:first-child{ border-top:none; }
+  .pkg li::before{ content:"— "; color:var(--red); }
+
+  .btn{
+    display:inline-block; padding:14px 28px; font-size:.85rem; font-weight:700;
+    text-decoration:none; border:none; color:var(--white); background:var(--red);
+    font-family:'Poppins',sans-serif; cursor:pointer; transition:all .2s; margin-top:28px;
+    border-radius:999px; box-shadow:0 6px 16px rgba(80,200,180,0.28);
+  }
+  .btn:hover{ transform:translateY(-2px); box-shadow:0 8px 20px rgba(80,200,180,0.36); }
+
+  :focus-visible{ outline:2px solid var(--red); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ .track{ transition:none; } }
+
+  /* ===== REVEAL (entrada de a uno, breve) ===== */
+  .reveal-item{
+    opacity:0;
+    transform:translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+  .panel.in-view .reveal-item{
+    opacity:1;
+    transform:translateY(0);
+  }
+  #hero-title.reveal-item{ transition-delay:0s; }
+  #hero-sub.reveal-item{ transition-delay:.08s; }
+  #hero-btn.reveal-item{ transition-delay:.16s; }
+  @media (prefers-reduced-motion: reduce){
+    .reveal-item{ transition:none !important; opacity:1 !important; transform:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+  CÓMO EDITAR ESTE ARCHIVO
+  Todo el CONTENIDO (textos, ítems, precios) vive en el objeto
+  DATA dentro del <script>, al final. Para cambiar texto o precios
+  editá ese objeto — no hace falta tocar el HTML ni el CSS.
+  Colores: variables al principio del <style> (--white, --gray-light,
+  --gray-dark, --red). Tipografía: Poppins (Google Fonts).
+============================================================= -->
+
+<div class="top-bar">
+  <div class="brand">Propuesta de trabajo</div>
+  <div class="tabs-wrap" id="tabs-wrap"></div>
+</div>
+
+<div class="viewport-wrap">
+<div class="track" id="track">
+  <div class="panel hero-panel" data-panel="0">
+    <div>
+      <h1 id="hero-title" class="reveal-item"></h1>
+      <p id="hero-sub" class="reveal-item"></p>
+      <div class="stat-strip reveal-item" id="hero-stats"></div>
+      <a href="#" class="btn reveal-item" id="hero-btn"></a>
+    </div>
+    <div class="hero-widget">
+      <div class="widget-label">Antes → Después</div>
+      <div id="chaos-container"></div>
+      <div class="grid-panel" id="grid-panel"></div>
+    </div>
+  </div>
+
+  <div class="panel" data-panel="1">
+    <div class="eyebrow" id="problem-eyebrow"></div>
+    <h2 id="problem-title"></h2>
+    <p id="problem-sub"></p>
+    <div class="row-list" id="problem-list"></div>
+  </div>
+
+  <div class="panel" data-panel="2">
+    <div class="eyebrow" id="solution-eyebrow"></div>
+    <h2 id="solution-title"></h2>
+    <p id="solution-sub"></p>
+    <div class="dash-demo reveal-item">
+      <div class="dash-demo-head">
+        <div class="dash-demo-label">Tablero de seguimiento</div>
+        <div class="dash-demo-tag">Panel de inicio</div>
+      </div>
+      <div class="dash-body">
+        <div class="dash-sidebar">
+          <div class="dash-sidebar-item active"><span class="dot"></span>Inicio</div>
+          <div class="dash-sidebar-item"><span class="dot"></span>Finanzas</div>
+          <div class="dash-sidebar-item"><span class="dot"></span>Comercial</div>
+          <div class="dash-sidebar-item"><span class="dot"></span>Operaciones</div>
+          <div class="dash-sidebar-item"><span class="dot"></span>RRHH</div>
+          <div class="dash-sidebar-item"><span class="dot"></span>Alertas</div>
+        </div>
+        <div class="dash-main">
+      <div class="dash-grid">
+        <div>
+          <div class="dash-cell" style="margin-bottom:14px;">
+            <div class="dash-cell-title">Ventas mensuales</div>
+            <div class="dash-chart-row" id="dash-bars"></div>
+          </div>
+          <div class="dash-cell">
+            <div class="dash-cell-title">Evolución de costos (últimos 6 meses)</div>
+            <svg class="dash-line-svg" viewBox="0 0 300 74" preserveAspectRatio="none" id="dash-line"></svg>
+            <div class="dash-chart-row" id="dash-line-lbls" style="height:auto; margin-top:4px;"></div>
+          </div>
+        </div>
+        <div>
+          <div class="dash-kpi-row">
+            <div class="dash-kpi"><div class="k-lbl">Ventas</div><div class="k-val">$4.2M</div><div class="k-delta up">▲ 6% vs mes ant.</div></div>
+            <div class="dash-kpi"><div class="k-lbl">Costos</div><div class="k-val">+18%</div><div class="k-delta down">▲ sobre presupuesto</div></div>
+            <div class="dash-kpi"><div class="k-lbl">Ausentismo</div><div class="k-val">3.1%</div><div class="k-delta up">▼ 0.4pp</div></div>
+            <div class="dash-kpi"><div class="k-lbl">Alertas activas</div><div class="k-val">2</div><div class="k-delta down">requieren acción</div></div>
+          </div>
+          <div class="dash-cell">
+            <div class="dash-cell-title">Alertas</div>
+            <div class="dash-alerts">
+              <div class="dash-alert"><div class="dash-alert-dot"></div><div class="dash-alert-txt">Costo operativo por encima del presupuesto<small>Área: Operaciones · desvío +18%</small></div></div>
+              <div class="dash-alert warn"><div class="dash-alert-dot"></div><div class="dash-alert-txt">Vencimiento próximo sin gestionar<small>Comercial · vence 12/08</small></div></div>
+              <div class="dash-alert ok"><div class="dash-alert-dot"></div><div class="dash-alert-txt">Ausentismo dentro de rango objetivo<small>RR.HH. · 3.1% vs meta 4%</small></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" data-panel="3">
+    <div class="eyebrow" id="process-eyebrow"></div>
+    <h2 id="process-title"></h2>
+    <div class="row-list" id="process-list"></div>
+  </div>
+
+  <div class="panel" data-panel="4">
+    <div class="eyebrow" id="packages-eyebrow"></div>
+    <h2 id="packages-title"></h2>
+    <p id="packages-sub"></p>
+    <div class="pkg-grid" id="packages-grid"></div>
+  </div>
+</div>
+</div>
+
+<button class="arrow left" id="arrow-left" aria-label="Anterior">←</button>
+<button class="arrow right" id="arrow-right" aria-label="Siguiente">→</button>
+
+<script>
+/* ============================================================
+   DATA — Editá acá el contenido. Ver comentario arriba del <body>.
+================================================================ */
+const DATA = {
+  meta: {
+    tabs: ["Inicio","Situación","Mejoras","Método","Propuesta"]
+  },
+  hero: {
+    title: 'Pasá de excel al <span class="accent">siguiente nivel</span>',
+    subtitle: "La empresa ya genera información que necesita para decidir. Solo hay que ordenarla y hacerla accesible.",
+    btn: "Estado de situación →",
+    stats: [
+      { num:"7 años", lbl:"de experiencia en análisis de datos y procesos" },
+      { num:"Adaptable", lbl:"participación en variados proyectos y temáticas" }
+    ]
+  },
+  problem: {
+    eyebrow: "Punto de partida",
+    title: "La información está, pero no está a mano",
+    items: [
+      { title: "El dato existe, pero está disperso", text: "Archivos sueltos entre áreas que manejan tiempos distintos." },
+      { title: "Armar una foto del mes toma tiempo", text: "El estado de los costos, ventas u operaciones se reconstruye a mano cada vez que hace falta." },
+      { title: "La revisión se dificulta", text: "Los vencimientos, caídas de rendimiento o desvíos de presupuesto pueden aparecer cuando ya generaron un costo." },
+      { title: "Cada área mira su propio número", text: "No hay una vista compartida para planificar mejor entre unidades de negocio." }
+    ]
+  },
+  solution: {
+    eyebrow: "Cómo se resuelve",
+    title: "Un tablero general por área y herramientas para la toma de datos",
+    subtitle: "Se toma la información que ya generás (o se genera nueva) y se convierte en paneles claros por tema. Entrás y entendés la situación con claridad.",
+    areas: [
+      { num:"01", title: "Económico y financiero"},
+      { num:"02", title: "Comercial"},
+      { num:"03", title: "Operaciones"},
+      { num:"04", title: "Recursos humanos"},
+      { num:"05", title: "Alertas"},
+    ]
+  },
+  process: {
+    eyebrow: "El proceso",
+    title: "Cómo se llega al resultado",
+    steps: [
+      { title: "Relevás qué información ya existe", text: "Se revisa dónde vive cada dato hoy y cómo se genera en cada área." },
+      { title: "Definís qué querés ver", text: "Se arma junto con cada responsable qué indicadores importan para la gestión." },
+      { title: "Se implementa el tablero", text: "Se crean tableros que faciliten la visualización y la toma de decisiones estratégicas y operativas." },
+      { title: "Se desarrollan nuevas herramientas", text: "En caso de ser necesario, se pueden mejorar o implementar nuevas herramientas para el seguimiento." },
+      { title: "Lo ajustás con el tiempo", text: "Se suman alertas, se corrige y se acompaña a medida que cambian las necesidades." }
+    ]
+  },
+  packages: {
+    eyebrow: "Elegí la opción que mejor se ajuste",
+    title: "Tres formas de empezar",
+    subtitle: "Elegí el nivel según cuántas áreas querés cubrir y cuánto acompañamiento necesitás.",
+    items: [
+      { tag:"Nivel 1", name:"Análisis de datos financieros", price:"$2.000.000", note:"mensual", mid:false,
+        features:["Análisis de bases de datos financieras","Visualización en tablero de datos","Mantenimiento incluído"] },
+      { tag:"Nivel 2", name:"Análisis de datos multi-área", price:"$2.500.000", note:"mensual", mid:true,
+        features:["Todo lo inculído en el Nivel 1", "Análisis de bases comerciales, de operación, RR.HH, etc", "'Tablero de tableros'","Alertas de gestión automáticas"]},
+      { tag:"Nivel 3", name:"Nivel 2 + Mejora de procesos", price:"$3.000.000", note:"$mensual", mid:false,
+        features:["Todo lo inculído en el Nivel 2","Análisis de procesos internos","Implementación de herramientas de mejora"] }
+    ],
+  }
+};
+
+/* ============================================================
+   RENDER
+================================================================ */
+/* Asigna un delay creciente y breve a cada hijo, para que aparezcan de a uno */
+function setStagger(container, selector, step = 0.07){
+  container.querySelectorAll(selector).forEach((el, i) => {
+    el.classList.add('reveal-item');
+    el.style.transitionDelay = (i * step).toFixed(2) + 's';
+  });
+}
+
+document.getElementById('hero-title').innerHTML = DATA.hero.title;
+document.getElementById('hero-sub').textContent = DATA.hero.subtitle;
+document.getElementById('hero-btn').textContent = DATA.hero.btn;
+document.getElementById('hero-stats').innerHTML = DATA.hero.stats.map(s=>`
+  <div class="stat"><div class="num">${s.num}</div><div class="lbl">${s.lbl}</div></div>`).join('');
+
+document.getElementById('problem-eyebrow').textContent = DATA.problem.eyebrow;
+document.getElementById('problem-title').textContent = DATA.problem.title;
+document.getElementById('problem-sub').textContent = DATA.problem.subtitle;
+document.getElementById('problem-list').innerHTML = DATA.problem.items.map((it,i)=>`
+  <div class="row"><div class="idx">0${i+1}</div><div><h3>${it.title}</h3><p>${it.text}</p></div></div>`).join('');
+setStagger(document.getElementById('problem-list'), '.row');
+
+document.getElementById('solution-eyebrow').textContent = DATA.solution.eyebrow;
+document.getElementById('solution-title').textContent = DATA.solution.title;
+document.getElementById('solution-sub').textContent = DATA.solution.subtitle;
+
+document.getElementById('process-eyebrow').textContent = DATA.process.eyebrow;
+document.getElementById('process-title').textContent = DATA.process.title;
+document.getElementById('process-list').innerHTML = DATA.process.steps.map((s,i)=>`
+  <div class="row"><div class="idx">0${i+1}</div><div><h3>${s.title}</h3><p>${s.text}</p></div></div>`).join('');
+setStagger(document.getElementById('process-list'), '.row');
+
+document.getElementById('packages-eyebrow').textContent = DATA.packages.eyebrow;
+document.getElementById('packages-title').textContent = DATA.packages.title;
+document.getElementById('packages-sub').textContent = DATA.packages.subtitle;
+document.getElementById('packages-grid').innerHTML = DATA.packages.items.map(p=>`
+  <div class="pkg">
+    <div class="pkg-tag">${p.tag}</div>
+    <h3>${p.name}</h3>
+    <h3>${p.price}</h3>
+    <div class="price-note">mensual</div>
+    <ul>${p.features.map(f=>`<li>${f}</li>`).join('')}</ul>
+  </div>`).join('');
+setStagger(document.getElementById('packages-grid'), '.pkg');
+
+/* Animación hero: caos -> orden */
+const chaosData = [
+  {v:"$142.300", t:16, l:5, r:-8},
+  {v:"32%", t:32, l:60, r:12},
+  {v:"14 días", t:60, l:15, r:-14},
+  {v:"RRHH.xlsx", t:14, l:65, r:9},
+  {v:"vto: 12/08", t:80, l:40, r:-6},
+  {v:"87 u.", t:45, l:80, r:15}
+];
+const targets = [
+  {tx:"22px", ty:"56px"}, {tx:"200px", ty:"56px"},
+  {tx:"22px", ty:"166px"}, {tx:"200px", ty:"166px"},
+  {tx:"22px", ty:"276px"}, {tx:"200px", ty:"276px"}
+];
+const chaosContainer = document.getElementById('chaos-container');
+chaosData.forEach((c,i)=>{
+  const el = document.createElement('div');
+  el.className = 'chaos-item';
+  el.textContent = c.v;
+  el.style.top = c.t+'%';
+  el.style.left = c.l+'%';
+  el.style.transform = `rotate(${c.r}deg)`;
+  el.style.setProperty('--d', (i*0.15)+'s');
+  el.style.setProperty('--tx', targets[i].tx);
+  el.style.setProperty('--ty', targets[i].ty);
+  chaosContainer.appendChild(el);
+});
+const tiles = [
+  {l:"Costos", v:"+18%"}, {l:"Ventas", v:"$4.2M"},
+  {l:"Ausentismo", v:"3.1%"}, {l:"Alertas", v:"2 activas"}
+];
+document.getElementById('grid-panel').innerHTML = tiles.map(t=>`
+  <div class="tile"><div class="tile-label">${t.l}</div><div class="tile-value">${t.v}</div></div>
+`).join('');
+
+/* Dashboard demo (slide Mejoras) */
+const dashBarsData = [
+  {l:"Mar", v:52}, {l:"Abr", v:61}, {l:"May", v:58}, {l:"Jun", v:70}, {l:"Jul", v:66}, {l:"Ago", v:84, hl:true}
+];
+document.getElementById('dash-bars').innerHTML = dashBarsData.map(b=>`
+  <div class="dash-bar-wrap">
+    <div class="dash-bar${b.hl?' hl':''}" style="height:${b.v}%;"></div>
+    <div class="dash-bar-lbl">${b.l}</div>
+  </div>`).join('');
+
+const lineVals = [30, 42, 38, 55, 49, 68];
+const lineLbls = ["Mar","Abr","May","Jun","Jul","Ago"];
+document.getElementById('dash-line-lbls').innerHTML = lineLbls.map(l=>`<div class="dash-bar-lbl" style="flex:1; text-align:center;">${l}</div>`).join('');
+const lineSvg = document.getElementById('dash-line');
+const stepX = 300/(lineVals.length-1);
+const toY = v => 68 - (v/100)*60;
+const pts = lineVals.map((v,i)=>`${(i*stepX).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
+const areaPts = `0,68 ${pts} 300,68`;
+lineSvg.innerHTML = `
+  <polyline points="${areaPts}" fill="rgba(80,200,180,0.08)" stroke="none"></polyline>
+  <polyline points="${pts}" fill="none" stroke="#50C8B4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+  ${lineVals.map((v,i)=>`<circle cx="${(i*stepX).toFixed(1)}" cy="${toY(v).toFixed(1)}" r="3" fill="#50C8B4"></circle>`).join('')}
+`;
+
+/* Tabs nav */
+const tabsWrap = document.getElementById('tabs-wrap');
+tabsWrap.innerHTML = DATA.meta.tabs.map((t,i)=>`
+  <button class="nav-tab ${i===0?'active':''}" data-goto="${i}">${t}</button>`).join('');
+
+/* ============================================================
+   NAVEGACIÓN HORIZONTAL
+================================================================ */
+const track = document.getElementById('track');
+const panels = document.querySelectorAll('.panel');
+const total = panels.length;
+let current = 0;
+
+function goTo(i){
+  current = Math.max(0, Math.min(total-1, i));
+  track.style.transform = `translateX(-${current*100}vw)`;
+  document.querySelectorAll('.nav-tab').forEach((t,idx)=>t.classList.toggle('active', idx===current));
+  document.getElementById('arrow-left').disabled = current===0;
+  document.getElementById('arrow-right').disabled = current===total-1;
+  /* Se resetea el reveal de todos los paneles: recién se dispara cuando
+     termina de deslizar el track (ver listener de transitionend abajo) */
+  panels.forEach(p => p.classList.remove('in-view'));
+}
+/* Dispara la aparición de los ítems justo cuando el slide horizontal termina,
+   así se ve la animación en vez de quedar "gastada" mientras el panel
+   todavía estaba fuera de pantalla */
+track.addEventListener('transitionend', (e)=>{
+  if(e.target !== track || e.propertyName !== 'transform') return;
+  panels[current].classList.add('in-view');
+});
+document.getElementById('arrow-left').addEventListener('click', ()=>goTo(current-1));
+document.getElementById('arrow-right').addEventListener('click', ()=>goTo(current+1));
+document.getElementById('hero-btn').addEventListener('click', (e)=>{ e.preventDefault(); goTo(1); });
+tabsWrap.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.nav-tab');
+  if(btn) goTo(parseInt(btn.dataset.goto));
+});
+window.addEventListener('keydown', (e)=>{
+  if(e.key==='ArrowRight') goTo(current+1);
+  if(e.key==='ArrowLeft') goTo(current-1);
+});
+let wheelLock = false;
+window.addEventListener('wheel', (e)=>{
+  if(Math.abs(e.deltaX) < Math.abs(e.deltaY)) return;
+  if(wheelLock) return;
+  if(e.deltaX > 30){ wheelLock=true; goTo(current+1); setTimeout(()=>wheelLock=false, 500); }
+  else if(e.deltaX < -30){ wheelLock=true; goTo(current-1); setTimeout(()=>wheelLock=false, 500); }
+}, {passive:true});
+
+/* Firma en cada panel */
+panels.forEach(p=>{
+  const sig = document.createElement('div');
+  sig.className = 'signature';
+  sig.textContent = 'Andrés Gibson';
+  p.appendChild(sig);
+});
+
+goTo(0);
+/* Fuerza que la primera slide también anime al cargar, en vez de aparecer ya lista */
+panels[0].classList.remove('in-view');
+requestAnimationFrame(()=>{
+  requestAnimationFrame(()=>{ panels[0].classList.add('in-view'); });
+});
+</script>
+</body>
+</html>
